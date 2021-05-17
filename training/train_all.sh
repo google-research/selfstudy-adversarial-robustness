@@ -151,6 +151,7 @@ fi
 ################################################################################
 
 run train_baseline.py
+run train_temperature.py
 run train_blur.py
 run train_ls.py
 run train_jump.py

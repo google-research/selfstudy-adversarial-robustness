@@ -21,18 +21,19 @@ from common.framework import DefenseModel, get_checkpoint_abs_path
 from common.networks import AllConvModel, AllConvModelTorch
 import common.utils as utils
 
-MODEL_PATH = 'checkpoints/diverse/final_checkpoint-1'
+MODEL_PATH = 'checkpoints/diverse-%d/final_checkpoint-1'
 
 
 class Defense(DefenseModel):
 
     def __init__(self):
         self.convnets = [AllConvModel(num_classes=10,
-                                      num_filters=64,
+                                      num_filters=64*2//3,
                                       input_shape=[32, 32, 3])
                          for _ in range(3)]
-        tf.train.Checkpoint(model=self.convnets).restore(
-            get_checkpoint_abs_path(MODEL_PATH))
+        for i in range(3):
+            tf.train.Checkpoint(model=self.convnets[i]).restore(
+                get_checkpoint_abs_path(MODEL_PATH%i))
 
     def classify(self, x):
         a,b,c = [utils.to_numpy(model(x)).argmax(1) for model in self.convnets]
@@ -50,10 +51,10 @@ class DefenseTorch(Defense):
     def __init__(self):
         import torch
         self.convnets = [AllConvModelTorch(num_classes=10,
-                                         num_filters=64,
+                                         num_filters=64*2//3,
                                          input_shape=[3, 32, 32])
                          for _ in range(3)]
 
-        models = torch.load(get_checkpoint_abs_path(MODEL_PATH) + ".torchmodel")
-        for i,model in enumerate(models):
+        for i in range(3):
+            model = torch.load(get_checkpoint_abs_path(MODEL_PATH%i) + ".torchmodel")
             self.convnets[i].load_state_dict(model)

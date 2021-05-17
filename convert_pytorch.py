@@ -19,6 +19,8 @@ import torch
 import math
 import numpy as np
 
+tf.config.set_visible_devices([], 'GPU')
+
 from common.networks import AllConvModel, AllConvModelTorch
 from common.framework import get_checkpoint_abs_path
 
