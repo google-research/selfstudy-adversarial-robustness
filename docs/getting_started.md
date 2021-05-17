@@ -39,12 +39,15 @@ pip install torch~=1.7
 
 6. Prepare checkpoints for all models used in the self-study. You can either download them or train them yourself.
 
-To download pre-trained checkpoints use the following command:
+To download all pre-trained checkpoints (TensorFlow+PyTorch) use the following command:
 
 ```bash
-wget TODO_GIVE_URL_HERE
-tar -xzf PATH
+wget https://github.com/google-research/selfstudy-adversarial-robustness/releases/download/v0.1/checkpoints.tgz
+tar -xzf checkpoints.tgz
 ```
+
+Just the TensorFlow or PyTorch models can be downloaded from the paths `tf_checkpoints.tgz` or `torch_checkpoints.tgz` for a decreased download size.
+
 
 To train TensorFlow versions of all models from scratch use the following command:
 
