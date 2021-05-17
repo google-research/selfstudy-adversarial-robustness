@@ -7,7 +7,7 @@ This directory contains scripts for integration with [Armory](https://github.com
 Installation:
 
 ```
-pip install armory-testbed
+pip install armory-testbed==0.11.1
 ```
 
 Run armory on specific defense and attack:
