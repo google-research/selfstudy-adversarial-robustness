@@ -86,14 +86,15 @@ class AttackWrapper(EvasionAttack):
         attack_name = kwargs['attack']
         if not attack_name.endswith('.py'):
             attack_name = attack_name + '.py'
-        defense_model, attack_cls, _, _ = load_defense_and_attack(
-            defense_path, attack_name)
+        defense_model, attack_cls, task_def, _ = load_defense_and_attack(
+            defense_path, attack_name, torch_model=None)
         self._model = defense_model
         self._attack_cls = attack_cls
+        self._task_def = task_def
 
     def generate(self, x: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
         assert y is not None, 'Labels has to be provided.'
-        return self._attack_cls().attack(self._model, x, y)
+        return self._attack_cls(self._task_def).attack(self._model, x, y)
 
 
 class DefenseWrapper(TensorFlowV2Classifier):
@@ -101,7 +102,7 @@ class DefenseWrapper(TensorFlowV2Classifier):
 
     def __init__(self, model):
         super().__init__(
-            lambda x: model.forward(x),
+            lambda x: model.classify(x),
             nb_classes=NUM_CLASSES,
             input_shape=INPUT_SHAPE,
             clip_values=(0., 1.),
@@ -118,7 +119,7 @@ def get_art_model(model_kwargs, wrapper_kwargs, weights_file):
     defense_name = model_kwargs['defense']
     defense_path = get_defense_path(defense_name)
     model, _, _, dataset_name = load_defense_and_attack(
-        defense_path, 'attack_linf.py')
+        defense_path, 'attack_linf.py', torch_model=None)
     assert dataset_name == 'cifar10', 'Only CIFAR10 dataset is supported for Armory.'
     # TODO: maybe add support for adversarial detector
     return DefenseWrapper(model)
