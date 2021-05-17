@@ -37,7 +37,7 @@ def cifar10_preprocessing(batch):
     return batch.astype(np.float32) / 255
 
 
-def cifar10(split_type: str = "train",
+def cifar10(split: str = "train",
             epochs: int = 1,
             batch_size: int = 1,
             dataset_dir: str = None,
@@ -49,7 +49,7 @@ def cifar10(split_type: str = "train",
     # so have to re-implement it.
     return armory.data.datasets._generator_from_tfds(
         "cifar10:3.0.2",
-        split_type=split_type,
+        split=split,
         batch_size=batch_size,
         epochs=epochs,
         dataset_dir=dataset_dir,
@@ -102,7 +102,7 @@ class DefenseWrapper(TensorFlowV2Classifier):
 
     def __init__(self, model):
         super().__init__(
-            lambda x: model.classify(x),
+            lambda x, **kwargs: model.classify(x),
             nb_classes=NUM_CLASSES,
             input_shape=INPUT_SHAPE,
             clip_values=(0., 1.),
