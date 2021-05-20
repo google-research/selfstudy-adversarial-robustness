@@ -29,11 +29,17 @@ else
   METRIC="linf"
 fi
 
+if [[ "${ATTACK_NAME}" == *"torch"* ]]; then
+  FRAMEWORK="pytorch"
+else
+  FRAMEWORK="tf2"
+fi
+
 # Create a json config
 config_file=$(mktemp)
 
 ATTACK="${ATTACK_NAME}" DEFENSE="${DEFENSE_NAME}" METRIC="${METRIC}" \
-    envsubst < armory_compat/config_template.json > "${config_file}"
+    FRAMEWORK="${FRAMEWORK}" envsubst < armory_compat/config_template.json > "${config_file}"
 
 echo "Generated Armory config saved in ${config_file}"
 
