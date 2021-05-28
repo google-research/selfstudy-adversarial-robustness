@@ -227,6 +227,15 @@ class LpTask(TaskDefinition):
         if distortion > self.threshold + 1e-3:
             return False, "Distortion {} exceeds bound {}".format(distortion, self.threshold)
 
+        # Verify that example is within [0, 1] domain of input images
+        min_val = np.min(adv_example)
+        max_val = np.max(adv_example)
+        if min_val < 0.0:
+            return False, "Adversarial example min value {} is outside of [0, 1] range".format(min_val)
+        if max_val > 1.0:
+            return False, "Adversarial example max value {} is outside of [0, 1] range".format(max_val)
+
+
         # Verify that it's not detected as adversarial
         if adv_detector > defense.threshold:
             return False, "Adversarial example rejected by detector with score {}.".format(adv_detector)
