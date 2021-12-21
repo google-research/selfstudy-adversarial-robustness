@@ -32,8 +32,7 @@ The training code is written to satisfy a few objectives
 
 Our best attack results are as follows, when evaluated on the first 100 images
 in the CIFAR-10 test set using the provided pretrained model..
-- l_infinity distortion of 4/255: TODO attack success rate
-- l_2 distortion of TODO: TODO attack success rate
+- l_infinity distortion of 4/255: 97% attack succes rate
 
 
 ## References

@@ -39,10 +39,6 @@ class Defense(DefenseModel):
         
     def classify(self, x):
         return utils.to_numpy(self.convnet(self.augment(x)))
-
-    def detect(self, x):
-        preds = [self.classify(x).argmax(1) for _ in range(5)]
-        return np.std(preds,axis=0) == 0
     
 
 class DefenseTorch(Defense):

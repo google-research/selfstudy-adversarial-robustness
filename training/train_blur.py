@@ -40,8 +40,8 @@ def main(argv):
 
     def blur(x):
         x_pad = np.pad(x, [(0, 0), (1, 1), (1, 1), (0, 0)])
-        x_pad = (x_pad[:, :1] + x_pad[:, :-1])/2
-        x_pad = (x_pad[:, :, :1] + x_pad[:, :, :-1])/2
+        x_pad = (x_pad[:, 1:] + x_pad[:, :-1])/2
+        x_pad = (x_pad[:, :, 1:] + x_pad[:, :, :-1])/2
         return x_pad
 
     x_train = blur(x_train)
