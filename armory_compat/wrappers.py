@@ -30,7 +30,6 @@ from common.loader import load_defense_and_attack
 NUM_CLASSES = 10
 INPUT_SHAPE = (32, 32, 3)
 
-
 def cifar10_preprocessing(batch):
     assert batch.dtype == np.uint8
     assert batch.shape[1:] == INPUT_SHAPE
@@ -84,42 +83,53 @@ class AttackWrapper(EvasionAttack):
         self._targeted = None
         defense_path = get_defense_path(kwargs['defense'])
         attack_name = kwargs['attack']
+        torch_model = 'torch' in attack_name
+        self.torch_model = torch_model
         if not attack_name.endswith('.py'):
             attack_name = attack_name + '.py'
         defense_model, attack_cls, task_def, _ = load_defense_and_attack(
-            defense_path, attack_name, torch_model=None)
+            defense_path, attack_name, torch_model=torch_model)
         self._model = defense_model
         self._attack_cls = attack_cls
         self._task_def = task_def
 
     def generate(self, x: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
         assert y is not None, 'Labels has to be provided.'
-        return self._attack_cls(self._task_def).attack(self._model, x, y)
-
+        if self.torch_model:
+            x = x.transpose(0, 3, 1, 2)
+        x_adv = self._attack_cls(self._task_def).attack(self._model, x, y)
+        if self.torch_model:
+            x_adv = x_adv.transpose(0, 2, 3, 1)
+        return x_adv
 
 class DefenseWrapper(TensorFlowV2Classifier):
     """ART wrapper for defenses."""
 
     def __init__(self, model):
+        torch_model = "Torch" in model.__class__.__name__
+        if torch_model:
+            wrapped_model = lambda x, **kwargs: model.classify(x.transpose(0, 3, 1, 2))
+        else:
+            wrapped_model = lambda x, **kwargs: model.classify(x)
+
         super().__init__(
-            lambda x, **kwargs: model.classify(x),
+            wrapped_model,
             nb_classes=NUM_CLASSES,
             input_shape=INPUT_SHAPE,
             clip_values=(0., 1.),
             loss_object=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True))
-
-    def set_learning_phase(self, train):
-        # Without overloading this method, armory does not work
-        pass
 
 
 def get_art_model(model_kwargs, wrapper_kwargs, weights_file):
     del wrapper_kwargs
     del weights_file
     defense_name = model_kwargs['defense']
+    attack_name = model_kwargs['attack']
+    torch_model = 'torch' in attack_name
     defense_path = get_defense_path(defense_name)
+
     model, _, _, dataset_name = load_defense_and_attack(
-        defense_path, 'attack_linf.py', torch_model=None)
+        defense_path, attack_name, torch_model=torch_model)
     assert dataset_name == 'cifar10', 'Only CIFAR10 dataset is supported for Armory.'
     # TODO: maybe add support for adversarial detector
     return DefenseWrapper(model)
